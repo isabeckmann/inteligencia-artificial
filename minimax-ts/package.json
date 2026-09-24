@@ -1,1 +1,1 @@
-{"name":"minimax-ts","version":"1.0.0","type":"module","scripts":{"build":"tsc","start":"tsc && node dist/main.js"},"devDependencies":{"typescript":"^5.5.0"}}
+{"name":"minimax-ts","version":"1.0.0","type":"module","scripts":{"build":"tsc","start":"tsc && node dist/main.js"},"devDependencies":{"typescript":"^5.9.3"}}
