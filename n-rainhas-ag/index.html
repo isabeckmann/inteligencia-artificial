@@ -1,57 +1,885 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>N-Rainhas com Algoritmo Genético</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Algoritmo Genético — Problema das N-Rainhas</title>
 <style>
-:root{--bg:#1c2a2e;--painel:#26383d;--txt:#e9efe9;--mute:#9db1aa;--clara:#dfe7dc;--escura:#5f8577;--ouro:#e0b64a;--erro:#d64b3c}
-*{box-sizing:border-box}
-body{margin:0;padding:24px;background:var(--bg);color:var(--txt);font:16px/1.5 Georgia,"Times New Roman",serif}
-h1{margin:0 0 4px;font-size:1.7rem}.sub{margin:0 0 20px;color:var(--mute);max-width:60ch}
-.layout{display:grid;grid-template-columns:280px minmax(0,1fr);gap:20px;max-width:1000px}
-.painel{background:var(--painel);padding:16px;border-radius:6px}
-label{display:block;margin:10px 0 2px;font-size:.9rem;color:var(--mute)}
-input[type=number],select{width:100%;padding:6px;border-radius:4px;border:1px solid #47625a;background:#1c2a2e;color:var(--txt);font:inherit}
-.check{display:flex;gap:8px;align-items:center;margin-top:12px}.check input{width:auto}
-button{margin-top:12px;padding:8px 12px;border:0;border-radius:4px;background:var(--ouro);color:#2a2100;font:inherit;font-weight:bold;cursor:pointer}
-button.sec{background:#47625a;color:var(--txt)}button:disabled{opacity:.4;cursor:default}
-button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--ouro);outline-offset:2px}
-.linha{display:flex;gap:8px}.linha button{flex:1}
-.stats{display:flex;gap:24px;margin-bottom:14px;flex-wrap:wrap}.stats b{display:block;font-size:1.5rem}.stats span{color:var(--mute);font-size:.85rem}
-#tabuleiro{display:grid;grid-template-columns:repeat(8,1fr);width:min(100%,440px);aspect-ratio:1;border:4px solid #0f1a1d}
-.casa{display:flex;align-items:center;justify-content:center;font-size:clamp(1.4rem,5vw,2.4rem);color:#1c2a2e}
-.clara{background:var(--clara)}.escura{background:var(--escura)}.conflito{background:var(--erro);color:#fff}
-#resultado{min-height:1.5em;margin:12px 0;font-weight:bold;color:var(--ouro)}
-#historico{list-style:none;padding:0;margin:0;max-height:220px;overflow:auto;font:.8rem/1.6 ui-monospace,Consolas,monospace;color:var(--mute)}
-@media(max-width:760px){.layout{grid-template-columns:1fr}}
+  :root{
+    --bg:#ffeaed;
+    --panel:#ffffff;
+    --ink:#2b2118;
+    --muted:#7a6f5f;
+    --line:#e3d9c6;
+    --wood-light:#f0d9b5;
+    --wood-dark:#b58863;
+    --gold:#a54e5b;
+    --gold-dark:#833642;
+    --danger:#c0392b;
+    --ok:#3c7a44;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+    background:var(--bg);
+    color:var(--ink);
+    padding: max(20px, env(safe-area-inset-top)) 20px 20px;
+  }
+  h1{
+    font-size: 1.6rem;
+    font-weight: 600;
+    margin: 0 0 4px;
+    letter-spacing: 0.01em;
+  }
+  .subtitle{
+    color:var(--muted);
+    font-size:0.92rem;
+    margin: 0 0 22px;
+    max-width: 640px;
+  }
+  .layout{
+    display:flex;
+    gap:24px;
+    align-items:flex-start;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:18px;
+  }
+  .controls{
+    width: 260px;
+    flex-shrink:0;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .controls label{
+    font-size:0.8rem;
+    color:var(--muted);
+    display:block;
+    margin-bottom:4px;
+    font-family: -apple-system, sans-serif;
+  }
+  .controls input, .controls select{
+    width:100%;
+    padding:7px 8px;
+    border:1px solid var(--line);
+    border-radius:6px;
+    font-size:0.95rem;
+    font-family: -apple-system, sans-serif;
+    background:#fff;
+    color:var(--ink);
+  }
+  .row2{ display:flex; gap:10px; }
+  .row2 > div{ flex:1; }
+  .check-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-family:-apple-system, sans-serif;
+    font-size:0.85rem;
+    color:var(--ink);
+  }
+  .check-row input{ width:auto; }
+  .btn{
+    font-family:-apple-system, sans-serif;
+    border:none;
+    border-radius:6px;
+    padding:9px 12px;
+    font-size:0.9rem;
+    cursor:pointer;
+    font-weight:600;
+  }
+  .btn-primary{ background:var(--gold); color:#fff; }
+  .btn-primary:hover{ background:var(--gold-dark); }
+  .btn-secondary{ background:#efe8d8; color:var(--ink); }
+  .btn-secondary:hover{ background:#e3d9c0; }
+  .btn:disabled{ opacity:0.45; cursor:not-allowed; }
+  .btn-row{ display:flex; gap:8px; }
+  .btn-row .btn{ flex:1; }
+  .btn-small{ font-size:0.78rem; padding:6px 10px; margin-top:10px; width:100%; }
+
+  .viz-panel{
+    width: 260px;
+    flex-shrink:0;
+  }
+  .viz-title{
+    font-size:0.85rem;
+    margin:0 0 10px;
+    color:var(--muted);
+    font-weight:600;
+    font-family: "Iowan Old Style", Georgia, serif;
+  }
+  .selection-viz-content{ display:flex; justify-content:center; }
+  .selection-viz-caption{
+    font-family:-apple-system, sans-serif;
+    font-size:0.76rem;
+    color:var(--muted);
+    line-height:1.4;
+    margin: 10px 0 0;
+  }
+  .tournament-grid{ display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
+  .tournament-box{
+    width:34px; height:34px;
+    border-radius:6px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:10px; font-weight:700; color:#fff;
+    font-family:-apple-system, sans-serif;
+  }
+  .tournament-box.picked{ box-shadow:0 0 0 3px var(--gold); }
+  .tournament-box.winner{ box-shadow:0 0 0 3px var(--ok); transform:scale(1.12); }
+
+  .main{ flex:1; min-width:0; }
+  .status-bar{
+    display:flex;
+    gap:18px;
+    flex-wrap:wrap;
+    font-family:-apple-system, sans-serif;
+    margin-bottom:16px;
+  }
+  .stat{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:10px 14px;
+    min-width:110px;
+  }
+  .stat .num{ font-size:1.3rem; font-weight:700; }
+  .stat .label{ font-size:0.72rem; color:var(--muted); text-transform:lowercase; }
+  .stat.solved .num{ color:var(--ok); }
+  .stat.done .num{ color:var(--danger); }
+
+  .board-wrap{ display:flex; justify-content:center; margin-bottom:20px; }
+  .board{
+    display:grid;
+    border:4px solid #3e2b1a;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  }
+  .cell{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size: 1.6rem;
+  }
+  .cell.light{ background:var(--wood-light); }
+  .cell.dark{ background:var(--wood-dark); }
+  .cell.attack{ background:#e07a6b !important; }
+
+  .history-wrap{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:14px 16px;
+    max-height: 320px;
+    overflow-y:auto;
+    font-family:-apple-system, sans-serif;
+  }
+  .history-wrap h2{
+    font-size:0.85rem;
+    margin:0 0 10px;
+    color:var(--muted);
+    font-weight:600;
+    font-family: "Iowan Old Style", Georgia, serif;
+  }
+  .history-list{ display:flex; flex-direction:column-reverse; gap:0; }
+  .history-item{
+    padding:10px 2px;
+    border-top:1px solid var(--line);
+    display:flex;
+    gap:14px;
+    align-items:flex-start;
+  }
+  .history-item:first-child{ border-top:none; }
+  .history-item-left{ flex-shrink:0; }
+  .history-item-right{ flex:1; min-width:0; }
+  .history-item .meta{
+    display:flex;
+    flex-wrap:wrap;
+    gap: 4px 10px;
+    font-size:0.78rem;
+    color:var(--muted);
+    margin-bottom:6px;
+  }
+  .history-item.best-row .meta{ color:var(--ok); font-weight:700; }
+  .history-cross{
+    font-size:0.76rem;
+    color:var(--muted);
+    line-height:1.6;
+  }
+  .history-cross.no-change{ font-style:italic; }
+  .history-cross .cross-line{ margin:4px 0 6px; color:var(--ink); font-style:normal; }
+  .vector-row{ display:flex; align-items:center; gap:8px; margin-bottom:5px; flex-wrap:wrap; }
+  .vector-label{
+    width:118px;
+    flex-shrink:0;
+    font-size:0.72rem;
+    color:var(--muted);
+  }
+  .vector-cells{ display:flex; gap:3px; flex-wrap:wrap; }
+  .cut-markers{ display:flex; gap:3px; margin-left:126px; height:18px; }
+  .cut-marker{ width:20px; text-align:center; font-size:0.58rem; color:var(--gold-dark); font-weight:700; line-height:1; }
+  .vector-cell{
+    width:20px; height:20px;
+    border-radius:4px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:10px; font-weight:700; color:#fff;
+    background:#9c9484;
+  }
+  .vector-cell.origin-p1{ background:#6b4f9e; }
+  .vector-cell.origin-p2{ background:#2f8f6e; }
+  .vector-cell.mutated{ box-shadow:0 0 0 2px var(--gold); }
+  .mini-board{
+    display:grid;
+    border:2px solid #3e2b1a;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  }
+  .mini-cell{ display:flex; align-items:center; justify-content:center; line-height:1; }
+  .mini-cell.light{ background:var(--wood-light); }
+  .mini-cell.dark{ background:var(--wood-dark); }
+  .mini-cell.attack{ background:#e07a6b !important; }
+  .mini-cell.changed{ box-shadow: inset 0 0 0 2px var(--gold); }
+
+  .result-banner{
+    font-family:-apple-system, sans-serif;
+    padding:12px 16px;
+    border-radius:8px;
+    font-weight:600;
+    font-size:0.9rem;
+    margin-bottom:16px;
+    display:none;
+  }
+  .result-banner.success{ background:#e5f3e6; color:var(--ok); border:1px solid #bfe3c2; }
+  .result-banner.fail{ background:#fbe8e6; color:var(--danger); border:1px solid #f0c4c0; }
+
+  @media (max-width: 760px){
+    .layout{ flex-direction:column; }
+    .controls{ width:100%; }
+    .viz-panel{ width:100%; }
+    .board-wrap{ overflow-x:auto; }
+  }
 </style>
 </head>
 <body>
-<h1>N-Rainhas com Algoritmo Genético</h1>
-<p class="sub">Ajuste os parâmetros e veja a população evoluir até nenhuma rainha atacar outra. Rainhas em vermelho estão sendo atacadas.</p>
+
+<h1>Algoritmo Genético — Problema das N-Rainhas</h1>
+<p class="subtitle">Configure os parâmetros evolutivos e observe o algoritmo buscar uma disposição das rainhas em que nenhuma ataque outra.</p>
+
 <div class="layout">
-  <div class="painel">
-    <label for="pop">Tamanho da população</label><input type="number" id="pop" min="4" max="500" value="100">
-    <label for="selecao">Seleção</label>
-    <select id="selecao"><option value="roleta">Roleta</option><option value="torneio" selected>Torneio</option><option value="ranking">Ranking</option></select>
-    <label for="cruzamento">Cruzamento</label>
-    <select id="cruzamento"><option value="um-ponto">Um ponto</option><option value="dois-pontos">Dois pontos</option><option value="uniforme">Uniforme</option></select>
-    <label for="mutacao">Mutação (% por gene)</label><input type="number" id="mutacao" min="0" max="100" step="0.1" value="1">
-    <label for="maxger">Máximo de gerações</label><input type="number" id="maxger" min="1" max="20000" value="500">
-    <div class="check"><input type="checkbox" id="elitismo" checked><label for="elitismo" style="margin:0">Elitismo (preserva o melhor)</label></div>
-    <div class="linha"><button class="sec" id="reiniciar">Reiniciar</button></div>
-    <div class="linha"><button class="sec" id="passo">Próxima geração</button><button id="rodar">Rodar</button></div>
-  </div>
-  <div>
-    <div class="stats">
-      <div><b id="s-ger">0</b><span>geração</span></div><div><b id="s-fit">–</b><span>melhor fitness</span></div>
-      <div><b id="s-conf">0</b><span>conflitos</span></div><div><b id="s-est">0</b><span>gerações sem melhora</span></div>
+
+  <div class="panel controls">
+    <div>
+      <label for="pop-size">Tamanho da população</label>
+      <input type="number" id="pop-size" min="4" max="500" value="100">
     </div>
-    <div id="tabuleiro" aria-label="Tabuleiro 8 por 8"></div>
-    <p id="resultado" role="status"></p>
-    <ol id="historico" aria-label="Histórico de gerações"></ol>
+    <div>
+      <label for="selection-type">Tipo de seleção</label>
+      <select id="selection-type">
+        <option value="roleta">Roleta</option>
+        <option value="torneio">Torneio</option>
+        <option value="ranking">Ranking</option>
+      </select>
+    </div>
+    <div>
+      <label for="crossover-type">Tipo de cruzamento</label>
+      <select id="crossover-type">
+        <option value="um-ponto">Um ponto</option>
+        <option value="dois-pontos">Dois pontos</option>
+        <option value="uniforme">Uniforme</option>
+      </select>
+    </div>
+    <div class="row2">
+      <div>
+        <label for="mutation-rate">Mutação (%)</label>
+        <input type="number" id="mutation-rate" min="0" max="100" step="0.1" value="1">
+      </div>
+      <div>
+        <label for="max-gen">Máx. gerações</label>
+        <input type="number" id="max-gen" min="1" max="20000" value="500">
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" id="btn-reset">Reiniciar</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" id="btn-step">Próxima geração</button>
+      <button class="btn btn-primary" id="btn-run">Rodar até o fim</button>
+    </div>
   </div>
+
+  <div class="panel viz-panel">
+    <h2 class="viz-title" id="viz-title">Como a Roleta escolhe os pais</h2>
+    <div id="selection-viz-content" class="selection-viz-content"></div>
+    <p class="selection-viz-caption" id="selection-viz-caption"></p>
+    <button class="btn btn-secondary btn-small" id="btn-resample-tournament" style="display:none;">Sortear novo exemplo</button>
+  </div>
+
+  <div class="main">
+    <div class="status-bar">
+      <div class="stat"><div class="num" id="stat-gen">0</div><div class="label">geração</div></div>
+      <div class="stat"><div class="num" id="stat-fitness">–</div><div class="label">melhor fitness</div></div>
+      <div class="stat"><div class="num" id="stat-conflicts">–</div><div class="label">conflitos</div></div>
+      <div class="stat"><div class="num" id="stat-stagnation">0</div><div class="label">sem melhoria há</div></div>
+      <div class="stat" id="stat-status-box"><div class="num" id="stat-status">Aguardando</div><div class="label">status</div></div>
+    </div>
+
+    <div id="result-banner" class="result-banner"></div>
+
+    <div class="board-wrap">
+      <div class="board" id="board"></div>
+    </div>
+
+    <div class="history-wrap">
+      <h2>Histórico de gerações — roxo = veio do Pai 1, verde = veio do Pai 2, contorno dourado = gene alterado pela mutação</h2>
+      <div id="history-list" class="history-list"></div>
+    </div>
+  </div>
+
 </div>
-<script type="module" src="dist/main.js"></script>
+
+<script>
+const N = 8;
+let maxPairs = (N*(N-1))/2;
+let population = [];
+let populationMeta = [];
+let generation = 0;
+let running = false;
+let finished = false;
+let runTimer = null;
+let bestEver = null;
+let lastBestChrom = null;
+let lastImprovedFit = -1;
+let stagnation = 0;
+let lastEvaluated = [];
+const STAGNATION_LIMIT = 40;
+
+const el = id => document.getElementById(id);
+
+function randInt(max){ return Math.floor(Math.random()*max); }
+
+function createIndividual(n){
+  return Array.from({length:n}, () => randInt(n));
+}
+
+function createPopulation(size, n){
+  const pop = [];
+  for(let i=0;i<size;i++) pop.push(createIndividual(n));
+  return pop;
+}
+
+function countConflicts(chrom){
+  let conflicts = 0;
+  const n = chrom.length;
+  for(let i=0;i<n;i++){
+    for(let j=i+1;j<n;j++){
+      if(chrom[i] === chrom[j]) conflicts++;
+      else if(Math.abs(chrom[i]-chrom[j]) === Math.abs(i-j)) conflicts++;
+    }
+  }
+  return conflicts;
+}
+
+function fitness(chrom){
+  return maxPairs - countConflicts(chrom);
+}
+
+/* ---------- Seleção ---------- */
+function selectParent(evaluated, type){
+  if(type === 'torneio'){
+    const size = 3;
+    let best = evaluated[randInt(evaluated.length)];
+    for(let i=1;i<size;i++){
+      const c = evaluated[randInt(evaluated.length)];
+      if(c.fit > best.fit) best = c;
+    }
+    return best.chrom;
+  }
+  if(type === 'ranking'){
+    const sorted = [...evaluated].sort((a,b)=>a.fit-b.fit);
+    const n = sorted.length;
+    const totalRank = n*(n+1)/2;
+    let r = Math.random()*totalRank;
+    for(let i=0;i<n;i++){
+      const rank = i+1;
+      if(r < rank) return sorted[i].chrom;
+      r -= rank;
+    }
+    return sorted[n-1].chrom;
+  }
+  // roleta (default)
+  const totalFit = evaluated.reduce((s,e)=>s+e.fit+1, 0);
+  let r = Math.random()*totalFit;
+  for(const e of evaluated){
+    r -= (e.fit+1);
+    if(r <= 0) return e.chrom;
+  }
+  return evaluated[evaluated.length-1].chrom;
+}
+
+/* ---------- Cruzamento ---------- */
+
+function singleCutOrderCrossover(p1, p2){
+  const n = p1.length;
+  const cut = 1 + randInt(n-1);
+  const child = p1.slice(0, cut).concat(p2.slice(cut));
+  const origin = child.map((v,i) => i < cut ? 1 : 2);
+  return { child, origin, info: `Um ponto — corte após a posição ${cut} (colunas 1–${cut} vêm do Pai 1, resto vem do Pai 2)` };
+}
+
+function twoPointCrossover(p1, p2){
+  const n = p1.length;
+  let a = randInt(n), b = randInt(n);
+  if(a > b) [a,b] = [b,a];
+  const child = p2.slice();
+  for(let i=a;i<=b;i++) child[i] = p1[i];
+  const origin = child.map((v,i) => (i >= a && i <= b) ? 1 : 2);
+  return { child, origin, cuts: [a, b], info: `Dois pontos — corte 1 antes da coluna ${a+1} e corte 2 depois da coluna ${b+1}. O intervalo ${a+1}–${b+1} vem do Pai 1; o restante vem do Pai 2` };
+}
+
+function uniformCrossover(p1, p2){
+  const n = p1.length;
+  const child = [];
+  const origin = [];
+  for(let i=0;i<n;i++){
+    if(Math.random() < 0.5){ child.push(p1[i]); origin.push(1); }
+    else { child.push(p2[i]); origin.push(2); }
+  }
+  return { child, origin, info: 'Uniforme — cada coluna recebe a linha do Pai 1 ou do Pai 2' };
+}
+
+function crossover(p1, p2, type){
+  if(type === 'dois-pontos') return twoPointCrossover(p1, p2);
+  if(type === 'uniforme') return uniformCrossover(p1, p2);
+  return singleCutOrderCrossover(p1, p2); // um ponto (default)
+}
+
+function mutate(chrom, ratePercent){
+  const n = chrom.length;
+  const mutated = [...chrom];
+  const swaps = [];
+  for(let i=0;i<n;i++){
+    if(Math.random()*100 < ratePercent){
+      const previous = mutated[i];
+      mutated[i] = randInt(n);
+      if(previous !== mutated[i]) swaps.push([i+1, previous + 1, mutated[i] + 1]);
+    }
+  }
+  return { mutated, swaps };
+}
+
+/* ---------- Ciclo evolutivo ---------- */
+function evaluatePopulation(pop){
+  return pop.map((chrom, i) => ({chrom, fit: fitness(chrom), meta: populationMeta[i] || null}));
+}
+
+function stepGeneration(){
+  const selType = el('selection-type').value;
+  const crossType = el('crossover-type').value;
+  const mutRate = parseFloat(el('mutation-rate').value) || 0;
+  const popSize = population.length;
+
+  const evaluated = evaluatePopulation(population);
+  const best = evaluated.reduce((a,b)=> b.fit>a.fit ? b : a);
+  const avgFit = evaluated.reduce((s,e)=>s+e.fit,0) / evaluated.length;
+  lastEvaluated = evaluated;
+  renderSelectionViz();
+
+  if(!bestEver || best.fit > bestEver.fit) bestEver = {chrom:[...best.chrom], fit:best.fit};
+
+  if(best.fit > lastImprovedFit){
+    lastImprovedFit = best.fit;
+    stagnation = 0;
+  } else {
+    stagnation++;
+  }
+  el('stat-stagnation').textContent = stagnation;
+
+  generation++;
+  addHistoryRow(generation, best.chrom, best.fit, avgFit, maxPairs - best.fit, best.meta);
+  renderBoard(best.chrom);
+  updateStats(best.fit, maxPairs - best.fit);
+  lastBestChrom = [...best.chrom];
+
+  const solved = best.fit === maxPairs;
+  const maxGenReached = generation >= parseInt(el('max-gen').value);
+
+  if(solved){
+    setStatus('Solução encontrada', 'solved');
+    finished = true;
+    showBanner('success', `🎉 Solução encontrada na geração ${generation}! Nenhuma rainha ataca outra.`);
+    stopRun();
+    return true;
+  }
+  if(maxGenReached){
+    setStatus('Máximo de gerações atingido', 'done');
+    finished = true;
+    showBanner('fail', `⚠️ Limite de ${generation} gerações atingido sem encontrar uma solução perfeita. Melhor fitness obtido: ${best.fit} / ${maxPairs} (${maxPairs - best.fit} conflito(s)).`);
+    stopRun();
+    return true;
+  }
+
+  const newPop = [];
+  const newPopMeta = [];
+  while(newPop.length < popSize){
+    const p1 = selectParent(evaluated, selType);
+    const p2 = selectParent(evaluated, selType);
+    const { child, origin, info } = crossover(p1, p2, crossType);
+    const { mutated, swaps } = mutate(child, mutRate);
+    newPop.push(mutated);
+    newPopMeta.push({ p1: [...p1], p2: [...p2], child: [...child], origin, crossInfo: info, swaps });
+  }
+
+  if(stagnation > 0 && stagnation % STAGNATION_LIMIT === 0){
+    const injectCount = Math.max(1, Math.floor(popSize * 0.3));
+    for(let k = 0; k < injectCount && k < newPop.length; k++){
+      newPop[k] = createIndividual(N);
+      newPopMeta[k] = { diversity: true };
+    }
+    setStatus(`Diversidade injetada (${injectCount} indivíduos novos)`, 'running');
+  } else {
+    setStatus('Em execução', 'running');
+  }
+
+  population = newPop;
+  populationMeta = newPopMeta;
+  return false;
+}
+
+/* ---------- Visualização do tipo de seleção ---------- */
+function fitColor(fit, maxFit){
+  const t = maxFit > 0 ? fit / maxFit : 0;
+  return `hsl(${Math.round(t*130)}, 60%, 45%)`;
+}
+
+function buildRouletteSVG(evaluated){
+  const weights = evaluated.map(e => e.fit + 1);
+  const total = weights.reduce((a,b)=>a+b, 0);
+  const maxFit = Math.max(...evaluated.map(e=>e.fit));
+  const cx=110, cy=110, r=100;
+  let angle = -Math.PI/2;
+  let paths = '';
+  evaluated.forEach(e => {
+    const w = e.fit + 1;
+    const slice = (w/total) * Math.PI*2;
+    const end = angle + slice;
+    const x1 = cx + r*Math.cos(angle), y1 = cy + r*Math.sin(angle);
+    const x2 = cx + r*Math.cos(end), y2 = cy + r*Math.sin(end);
+    const largeArc = slice > Math.PI ? 1 : 0;
+    paths += `<path d="M ${cx} ${cy} L ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 ${largeArc} 1 ${x2.toFixed(2)} ${y2.toFixed(2)} Z" fill="${fitColor(e.fit,maxFit)}" stroke="#fff" stroke-width="0.6"/>`;
+    angle = end;
+  });
+  return `<svg viewBox="0 0 220 220" width="220" height="220">${paths}</svg>`;
+}
+
+function buildRankingSVG(evaluated){
+  const sorted = [...evaluated].sort((a,b)=>a.fit-b.fit);
+  const n = sorted.length;
+  const totalRank = n*(n+1)/2;
+  const width = 220, height = 160;
+  const barW = Math.max(1.5, (width-16)/n);
+  let bars = '';
+  sorted.forEach((e,i) => {
+    const rank = i+1;
+    const prob = rank/totalRank;
+    const maxProb = n/totalRank;
+    const barH = (prob/maxProb) * (height-24);
+    const x = 8 + i*barW;
+    const y = (height-14) - barH;
+    bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${Math.max(1,barW-0.5).toFixed(1)}" height="${barH.toFixed(1)}" fill="${fitColor(i, n-1)}"/>`;
+  });
+  return `<svg viewBox="0 0 ${width} ${height}" width="220" height="160">${bars}<line x1="8" y1="${height-14}" x2="${width-8}" y2="${height-14}" stroke="#3e2b1a" stroke-width="1"/></svg>`;
+}
+
+function buildTournamentBoxes(evaluated){
+  const sampleSize = Math.min(15, evaluated.length);
+  const shuffled = [...evaluated].sort(() => Math.random()-0.5).slice(0, sampleSize);
+  const k = Math.min(3, shuffled.length);
+  const chosen = new Set();
+  while(chosen.size < k) chosen.add(randInt(shuffled.length));
+  let winnerIdx = -1, winnerFit = -Infinity;
+  chosen.forEach(idx => { if(shuffled[idx].fit > winnerFit){ winnerFit = shuffled[idx].fit; winnerIdx = idx; } });
+  const maxFit = Math.max(...evaluated.map(e=>e.fit));
+  let html = '';
+  shuffled.forEach((e,i) => {
+    let cls = 'tournament-box';
+    if(chosen.has(i)) cls += ' picked';
+    if(i === winnerIdx) cls += ' winner';
+    html += `<div class="${cls}" style="background:${fitColor(e.fit,maxFit)}">${e.fit}</div>`;
+  });
+  return html;
+}
+
+function renderSelectionViz(){
+  const type = el('selection-type').value;
+  const evaluated = lastEvaluated.length ? lastEvaluated : evaluatePopulation(population);
+  const content = el('selection-viz-content');
+  const caption = el('selection-viz-caption');
+  const resampleBtn = el('btn-resample-tournament');
+  const titleEl = el('viz-title');
+
+  if(type === 'ranking'){
+    titleEl.textContent = 'Como o Ranking escolhe os pais';
+    content.innerHTML = buildRankingSVG(evaluated);
+    caption.textContent = 'Indivíduos ordenados do pior (esquerda) ao melhor (direita). A chance de ser escolhido cresce de forma linear com a posição no ranking — não importa o quão distante o fitness real está de um para o outro.';
+    resampleBtn.style.display = 'none';
+  } else if(type === 'torneio'){
+    titleEl.textContent = 'Como o Torneio escolhe os pais';
+    content.innerHTML = `<div class="tournament-grid">${buildTournamentBoxes(evaluated)}</div>`;
+    caption.textContent = 'Uma amostra da população é mostrada; 3 indivíduos são sorteados (contorno dourado) e o mais apto entre eles vence (contorno verde). Indivíduos fracos ainda competem, mas raramente vencem.';
+    resampleBtn.style.display = 'block';
+  } else {
+    titleEl.textContent = 'Como a Roleta escolhe os pais';
+    content.innerHTML = buildRouletteSVG(evaluated);
+    caption.textContent = 'Cada indivíduo ocupa uma fatia proporcional ao seu fitness (verde = alto, vermelho = baixo). Fatias maiores são sorteadas com mais frequência, mas todas têm alguma chance, mesmo as pequenas.';
+    resampleBtn.style.display = 'none';
+  }
+}
+
+el('selection-type').addEventListener('change', renderSelectionViz);
+el('btn-resample-tournament').addEventListener('click', renderSelectionViz);
+
+
+function renderBoard(chrom){
+  const n = chrom.length;
+  const board = el('board');
+  board.innerHTML = '';
+  const cellSize = Math.max(28, Math.min(60, Math.floor(480/n)));
+  board.style.gridTemplateColumns = `repeat(${n}, ${cellSize}px)`;
+  board.style.gridTemplateRows = `repeat(${n}, ${cellSize}px)`;
+
+  const attacking = new Set();
+  for(let i=0;i<n;i++){
+    for(let j=i+1;j<n;j++){
+      if(chrom[i]===chrom[j] || Math.abs(chrom[i]-chrom[j])===Math.abs(i-j)){
+        attacking.add(i); attacking.add(j);
+      }
+    }
+  }
+
+  for(let row=0; row<n; row++){
+    for(let col=0; col<n; col++){
+      const cell = document.createElement('div');
+      cell.classList.add('cell', (row+col)%2===0 ? 'light' : 'dark');
+      cell.style.width = cellSize+'px';
+      cell.style.height = cellSize+'px';
+      cell.style.fontSize = Math.floor(cellSize*0.6)+'px';
+      if(chrom[col] === row){
+        cell.textContent = '♛';
+        if(attacking.has(col)) cell.classList.add('attack');
+      }
+      board.appendChild(cell);
+    }
+  }
+}
+
+function buildMiniBoard(chrom, prevChrom){
+  const n = chrom.length;
+  const board = document.createElement('div');
+  board.className = 'mini-board';
+  const cellSize = Math.max(10, Math.min(22, Math.floor(230/n)));
+  board.style.gridTemplateColumns = `repeat(${n}, ${cellSize}px)`;
+  board.style.gridTemplateRows = `repeat(${n}, ${cellSize}px)`;
+
+  const attacking = new Set();
+  for(let i=0;i<n;i++){
+    for(let j=i+1;j<n;j++){
+      if(chrom[i]===chrom[j] || Math.abs(chrom[i]-chrom[j])===Math.abs(i-j)){
+        attacking.add(i); attacking.add(j);
+      }
+    }
+  }
+
+  for(let row=0; row<n; row++){
+    for(let col=0; col<n; col++){
+      const cell = document.createElement('div');
+      cell.classList.add('mini-cell', (row+col)%2===0 ? 'light' : 'dark');
+      cell.style.width = cellSize+'px';
+      cell.style.height = cellSize+'px';
+      if(chrom[col] === row){
+        cell.style.fontSize = Math.floor(cellSize*0.75)+'px';
+        cell.textContent = '♛';
+        if(attacking.has(col)) cell.classList.add('attack');
+        if(prevChrom && prevChrom[col] !== row) cell.classList.add('changed');
+      }
+      board.appendChild(cell);
+    }
+  }
+  return board;
+}
+
+function buildVectorRow(label, chrom, cellClassFn){
+  const cells = chrom.map((v,i) => {
+    const cls = cellClassFn ? cellClassFn(v,i) : '';
+    return `<div class="vector-cell ${cls}">${v+1}</div>`;
+  }).join('');
+  return `<div class="vector-row"><span class="vector-label">${label}</span><div class="vector-cells">${cells}</div></div>`;
+}
+
+function buildCutMarkers(cuts, length){
+  if(!cuts) return '';
+  const cells = Array.from({length}, (_, i) => {
+    const label = i === cuts[0] ? 'C1' : i === cuts[1] ? 'C2' : '';
+    return `<span class="cut-marker">${label}</span>`;
+  }).join('');
+  return `<div class="cut-markers" aria-label="Cortes do cruzamento de dois pontos">${cells}</div>`;
+}
+
+function buildCrossoverHTML(lineage, finalChrom){
+  if(!lineage || lineage.diversity){
+    return `<div class="history-cross no-change">
+      <div class="cross-line">Indivíduo aleatório ${lineage && lineage.diversity ? '(injetado para diversidade)' : '(população inicial)'} — sem pais, sem cruzamento.</div>
+      ${buildVectorRow('Indivíduo', finalChrom)}
+    </div>`;
+  }
+
+  let html = `<div class="history-cross">`;
+  html += buildVectorRow('Pai 1', lineage.p1, () => 'origin-p1');
+  html += buildVectorRow('Pai 2', lineage.p2, () => 'origin-p2');
+  html += `<div class="cross-line">${lineage.crossInfo}</div>`;
+  html += buildCutMarkers(lineage.cuts, lineage.child.length);
+  html += buildVectorRow('Filho (cruzamento)', lineage.child, (v,i) => lineage.origin[i] === 1 ? 'origin-p1' : 'origin-p2');
+
+  if(lineage.swaps && lineage.swaps.length > 0){
+    const swapPositions = new Set();
+    lineage.swaps.forEach(([position]) => swapPositions.add(position-1));
+    html += `<div class="cross-line">Mutação: ${lineage.swaps.map(([position, previous, next]) => `posição ${position}: linha ${previous} -> ${next}`).join(', ')}</div>`;
+    html += buildVectorRow('Filho final (mutado)', finalChrom, (v,i) => swapPositions.has(i) ? 'mutated' : '');
+  } else {
+    html += `<div class="cross-line">Sem mutação — o filho final é igual ao resultado do cruzamento</div>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+function addHistoryRow(gen, bestChrom, bestFit, avgFit, conflicts, lineage){
+  const list = el('history-list');
+  const item = document.createElement('div');
+  item.className = 'history-item';
+  if(bestEver && bestFit === bestEver.fit) item.classList.add('best-row');
+
+  const left = document.createElement('div');
+  left.className = 'history-item-left';
+  left.appendChild(buildMiniBoard(bestChrom, lastBestChrom));
+
+  const right = document.createElement('div');
+  right.className = 'history-item-right';
+  const metaRow = document.createElement('div');
+  metaRow.className = 'meta';
+  metaRow.innerHTML = `<span>Geração ${gen}</span><span>fitness ${bestFit}/${maxPairs}</span><span>médio ${avgFit.toFixed(1)}</span><span>conflitos ${conflicts}</span>`;
+  right.appendChild(metaRow);
+  right.insertAdjacentHTML('beforeend', buildCrossoverHTML(lineage, bestChrom));
+
+  item.appendChild(left);
+  item.appendChild(right);
+  list.appendChild(item);
+  list.scrollTop = list.scrollHeight;
+}
+
+function updateStats(bestFit, conflicts){
+  el('stat-gen').textContent = generation;
+  el('stat-fitness').textContent = `${bestFit} / ${maxPairs}`;
+  el('stat-conflicts').textContent = conflicts;
+}
+
+function setStatus(text, cls){
+  const box = el('stat-status-box');
+  box.classList.remove('solved','done');
+  if(cls) box.classList.add(cls);
+  el('stat-status').textContent = text;
+}
+
+function showBanner(type, text){
+  const b = el('result-banner');
+  b.textContent = text;
+  b.className = 'result-banner ' + type;
+  b.style.display = 'block';
+}
+
+function hideBanner(){
+  const b = el('result-banner');
+  b.style.display = 'none';
+  b.textContent = '';
+}
+
+function updateControlsState(){
+  const stepBtn = el('btn-step');
+  const runBtn = el('btn-run');
+  if(finished){
+    stepBtn.disabled = true;
+    runBtn.disabled = true;
+  } else {
+    stepBtn.disabled = running;
+    runBtn.disabled = false;
+  }
+}
+
+function stopRun(){
+  running = false;
+  clearInterval(runTimer);
+  runTimer = null;
+  el('btn-run').textContent = 'Rodar até o fim';
+  updateControlsState();
+}
+
+function resetAll(){
+  stopRun();
+  finished = false;
+  maxPairs = (N*(N-1))/2;
+  const popSize = parseInt(el('pop-size').value) || 50;
+  population = createPopulation(popSize, N);
+  populationMeta = new Array(popSize).fill(null);
+  generation = 0;
+  bestEver = null;
+  lastBestChrom = null;
+  lastImprovedFit = -1;
+  stagnation = 0;
+  el('history-list').innerHTML = '';
+  el('stat-gen').textContent = '0';
+  el('stat-fitness').textContent = '–';
+  el('stat-conflicts').textContent = '–';
+  el('stat-stagnation').textContent = '0';
+  setStatus('Aguardando', null);
+  hideBanner();
+  const evaluated = evaluatePopulation(population);
+  const best = evaluated.reduce((a,b)=> b.fit>a.fit ? b : a);
+  lastEvaluated = evaluated;
+  renderBoard(best.chrom);
+  renderSelectionViz();
+  updateControlsState();
+}
+
+el('btn-reset').addEventListener('click', resetAll);
+
+el('btn-step').addEventListener('click', () => {
+  if(running || finished) return;
+  stepGeneration();
+});
+
+el('btn-run').addEventListener('click', () => {
+  if(finished) return;
+  if(running){
+    stopRun();
+    setStatus('Pausado', null);
+    return;
+  }
+  running = true;
+  el('btn-run').textContent = 'Parar';
+  updateControlsState();
+  runTimer = setInterval(() => {
+    const done = stepGeneration();
+    if(done){
+      stopRun();
+    }
+  }, 40);
+});
+
+resetAll();
+</script>
+
 </body>
 </html>
