@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>N-Rainhas com Algoritmo Genético</title>
+<style>
+:root{--bg:#1c2a2e;--painel:#26383d;--txt:#e9efe9;--mute:#9db1aa;--clara:#dfe7dc;--escura:#5f8577;--ouro:#e0b64a;--erro:#d64b3c}
+*{box-sizing:border-box}
+body{margin:0;padding:24px;background:var(--bg);color:var(--txt);font:16px/1.5 Georgia,"Times New Roman",serif}
+h1{margin:0 0 4px;font-size:1.7rem}.sub{margin:0 0 20px;color:var(--mute);max-width:60ch}
+.layout{display:grid;grid-template-columns:280px minmax(0,1fr);gap:20px;max-width:1000px}
+.painel{background:var(--painel);padding:16px;border-radius:6px}
+label{display:block;margin:10px 0 2px;font-size:.9rem;color:var(--mute)}
+input[type=number],select{width:100%;padding:6px;border-radius:4px;border:1px solid #47625a;background:#1c2a2e;color:var(--txt);font:inherit}
+.check{display:flex;gap:8px;align-items:center;margin-top:12px}.check input{width:auto}
+button{margin-top:12px;padding:8px 12px;border:0;border-radius:4px;background:var(--ouro);color:#2a2100;font:inherit;font-weight:bold;cursor:pointer}
+button.sec{background:#47625a;color:var(--txt)}button:disabled{opacity:.4;cursor:default}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--ouro);outline-offset:2px}
+.linha{display:flex;gap:8px}.linha button{flex:1}
+.stats{display:flex;gap:24px;margin-bottom:14px;flex-wrap:wrap}.stats b{display:block;font-size:1.5rem}.stats span{color:var(--mute);font-size:.85rem}
+#tabuleiro{display:grid;grid-template-columns:repeat(8,1fr);width:min(100%,440px);aspect-ratio:1;border:4px solid #0f1a1d}
+.casa{display:flex;align-items:center;justify-content:center;font-size:clamp(1.4rem,5vw,2.4rem);color:#1c2a2e}
+.clara{background:var(--clara)}.escura{background:var(--escura)}.conflito{background:var(--erro);color:#fff}
+#resultado{min-height:1.5em;margin:12px 0;font-weight:bold;color:var(--ouro)}
+#historico{list-style:none;padding:0;margin:0;max-height:220px;overflow:auto;font:.8rem/1.6 ui-monospace,Consolas,monospace;color:var(--mute)}
+@media(max-width:760px){.layout{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<h1>N-Rainhas com Algoritmo Genético</h1>
+<p class="sub">Ajuste os parâmetros e veja a população evoluir até nenhuma rainha atacar outra. Rainhas em vermelho estão sendo atacadas.</p>
+<div class="layout">
+  <div class="painel">
+    <label for="pop">Tamanho da população</label><input type="number" id="pop" min="4" max="500" value="100">
+    <label for="selecao">Seleção</label>
+    <select id="selecao"><option value="roleta">Roleta</option><option value="torneio" selected>Torneio</option><option value="ranking">Ranking</option></select>
+    <label for="cruzamento">Cruzamento</label>
+    <select id="cruzamento"><option value="um-ponto">Um ponto</option><option value="dois-pontos">Dois pontos</option><option value="uniforme">Uniforme</option></select>
+    <label for="mutacao">Mutação (% por gene)</label><input type="number" id="mutacao" min="0" max="100" step="0.1" value="1">
+    <label for="maxger">Máximo de gerações</label><input type="number" id="maxger" min="1" max="20000" value="500">
+    <div class="check"><input type="checkbox" id="elitismo" checked><label for="elitismo" style="margin:0">Elitismo (preserva o melhor)</label></div>
+    <div class="linha"><button class="sec" id="reiniciar">Reiniciar</button></div>
+    <div class="linha"><button class="sec" id="passo">Próxima geração</button><button id="rodar">Rodar</button></div>
+  </div>
+  <div>
+    <div class="stats">
+      <div><b id="s-ger">0</b><span>geração</span></div><div><b id="s-fit">–</b><span>melhor fitness</span></div>
+      <div><b id="s-conf">0</b><span>conflitos</span></div><div><b id="s-est">0</b><span>gerações sem melhora</span></div>
+    </div>
+    <div id="tabuleiro" aria-label="Tabuleiro 8 por 8"></div>
+    <p id="resultado" role="status"></p>
+    <ol id="historico" aria-label="Histórico de gerações"></ol>
+  </div>
+</div>
+<script type="module" src="dist/main.js"></script>
+</body>
+</html>
